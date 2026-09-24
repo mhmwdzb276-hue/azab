@@ -29,7 +29,6 @@ class AzabStudioScreen extends StatefulWidget {
 }
 
 class _AzabStudioScreenState extends State<AzabStudioScreen> {
-  // القائمة الشاملة للهجات العربية للتوليد الذكي
   final List<String> arabicDialects = [
     '🇪🇬 اللهجة المصرية (Egypt)',
     '🇸🇦 اللهجة السعودية والخليجية (Gulf)',
@@ -48,7 +47,12 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
     selectedDialect = arabicDialects[0];
   }
 
-  // دالة توليد الصوت الذكي
+  @override
+  void dispose() {
+    textController.dispose();
+    super.dispose();
+  }
+
   void generateAIVoice() {
     final text = textController.text.trim();
     if (text.isEmpty) {
@@ -89,7 +93,6 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
       ),
       body: Column(
         children: [
-          // شاشة معاينة الفيديو المصغرة (Preview Screen)
           Expanded(
             flex: 4,
             child: Container(
@@ -114,8 +117,6 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
               ),
             ),
           ),
-
-          // لوحة التحكم وتوليد الصوت باللهجات
           Expanded(
             flex: 5,
             child: SingleChildScrollView(
@@ -189,8 +190,6 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
               ),
             ),
           ),
-
-          // شريط التايم لاين وأدوات المونتاج السفلي (Timeline & Tools)
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
@@ -210,7 +209,6 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                // شكل مسارات التايم لاين الوهمية
                 Container(
                   height: 45,
                   decoration: BoxDecoration(
@@ -235,7 +233,6 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
     );
   }
 
-  // أزرار أدوات المونتاج السريعة
   Widget _buildToolButton(IconData icon, String label) {
     return Column(
       mainAxisSize: MainAxisSize.min,
