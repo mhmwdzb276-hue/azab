@@ -37,7 +37,18 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
     '🌍 اللغة العربية الفصحى (MSA)',
   ];
 
+  final List<String> videoFilters = [
+    'بدون فلتر (Normal)',
+    'سينمائي دافئ (Cinematic Warm)',
+    'أبيض وأسود فني (B&W)',
+    'تباين عالي (High Contrast)',
+    'رومانسي ناعم (Soft Glow)',
+  ];
+
   late String selectedDialect;
+  late String selectedFilter;
+  double videoSpeed = 1.0;
+
   final TextEditingController textController = TextEditingController();
   bool isGenerating = false;
 
@@ -45,6 +56,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
   void initState() {
     super.initState();
     selectedDialect = arabicDialects[0];
+    selectedFilter = videoFilters[0];
   }
 
   @override
@@ -94,23 +106,27 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
       body: Column(
         children: [
           Expanded(
-            flex: 4,
+            flex: 3,
             child: Container(
-              margin: const EdgeInsets.all(12),
+              margin: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey[800]!),
               ),
-              child: const Center(
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.play_circle_fill_rounded, size: 64, color: Colors.blueAccent),
-                    SizedBox(height: 8),
+                    const Icon(Icons.play_circle_fill_rounded, size: 56, color: Colors.blueAccent),
+                    const SizedBox(height: 6),
                     Text(
-                      'منطقة معاينة الفيديو (Preview)',
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                      'معاينة الفيديو | الفلتر: $selectedFilter',
+                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
+                    Text(
+                      'السرعة: ${videoSpeed.toStringAsFixed(1)}x',
+                      style: const TextStyle(color: Colors.blueAccent, fontSize: 12),
                     ),
                   ],
                 ),
@@ -126,9 +142,9 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                 children: [
                   const Text(
                     'اختر اللهجة العربية للتوليد الصوتي:',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blueAccent),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
@@ -144,7 +160,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                       items: arabicDialects.map((String dialect) {
                         return DropdownMenuItem<String>(
                           value: dialect,
-                          child: Text(dialect, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                          child: Text(dialect, style: const TextStyle(color: Colors.white, fontSize: 12)),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
@@ -154,11 +170,63 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'فلتر الفيديو التأثيري:',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[700]!),
+                    ),
+                    child: DropdownButton<String>(
+                      value: selectedFilter,
+                      isExpanded: true,
+                      dropdownColor: const Color(0xFF1E1E1E),
+                      underline: const SizedBox(),
+                      items: videoFilters.map((String filter) {
+                        return DropdownMenuItem<String>(
+                          value: filter,
+                          child: Text(filter, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedFilter = newValue!;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('سرعة تشغيل المقطع:', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                      Text('${videoSpeed.toStringAsFixed(1)}x', style: const TextStyle(fontSize: 12, color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  Slider(
+                    value: videoSpeed,
+                    min: 0.5,
+                    max: 3.0,
+                    divisions: 5,
+                    activeColor: Colors.blueAccent,
+                    inactiveColor: Colors.grey[800],
+                    onChanged: (double value) {
+                      setState(() {
+                        videoSpeed = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
                   TextField(
                     controller: textController,
                     maxLines: 2,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
                     decoration: InputDecoration(
                       hintText: 'اكتب النص للتحويل الصوتي بالذكاء الاصطناعي...',
                       hintStyle: TextStyle(color: Colors.grey[600]),
@@ -170,19 +238,19 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   Center(
                     child: isGenerating
                         ? const CircularProgressIndicator(color: Colors.blueAccent)
                         : ElevatedButton.icon(
                             onPressed: generateAIVoice,
-                            icon: const Icon(Icons.mic_rounded, size: 18),
+                            icon: const Icon(Icons.mic_rounded, size: 16),
                             label: const Text('توليد الصوت الذكي'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blueAccent,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                              textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                             ),
                           ),
                   ),
@@ -191,7 +259,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: const BoxDecoration(
               color: Color(0xFF181818),
               border: Border(top: BorderSide(color: Color(0xFF2C2C2C))),
@@ -208,9 +276,9 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                     _buildToolButton(Icons.speed, 'السرعة'),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Container(
-                  height: 45,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: const Color(0xFF252525),
                     borderRadius: BorderRadius.circular(6),
@@ -219,9 +287,9 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.movie_creation_outlined, color: Colors.grey, size: 18),
-                      const SizedBox(width: 8),
-                      Text('التايم لاين الرئيسي (Timeline Tracks)', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                      const Icon(Icons.movie_creation_outlined, color: Colors.grey, size: 16),
+                      const SizedBox(width: 6),
+                      Text('التايم لاين الرئيسي (Timeline Tracks)', style: TextStyle(color: Colors.grey[400], fontSize: 11)),
                     ],
                   ),
                 ),
@@ -237,9 +305,9 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Colors.blueAccent, size: 20),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+        Icon(icon, color: Colors.blueAccent, size: 18),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 9)),
       ],
     );
   }
