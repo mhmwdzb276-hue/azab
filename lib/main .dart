@@ -16,20 +16,20 @@ class AzabApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF121212),
         primaryColor: Colors.blueAccent,
       ),
-      home: const TTSStudioScreen(),
+      home: const AzabStudioScreen(),
     );
   }
 }
 
-class TTSStudioScreen extends StatefulWidget {
-  const TTSStudioScreen({super.key});
+class AzabStudioScreen extends StatefulWidget {
+  const AzabStudioScreen({super.key});
 
   @override
-  State<TTSStudioScreen> createState() => _TTSStudioScreenState();
+  State<AzabStudioScreen> createState() => _AzabStudioScreenState();
 }
 
-class _TTSStudioScreenState extends State<TTSStudioScreen> {
-  // القائمة الشاملة للهجات العربية
+class _AzabStudioScreenState extends State<AzabStudioScreen> {
+  // القائمة الشاملة للهجات العربية للتوليد الذكي
   final List<String> arabicDialects = [
     '🇪🇬 اللهجة المصرية (Egypt)',
     '🇸🇦 اللهجة السعودية والخليجية (Gulf)',
@@ -48,7 +48,7 @@ class _TTSStudioScreenState extends State<TTSStudioScreen> {
     selectedDialect = arabicDialects[0];
   }
 
-  // دالة توليد الصوت الذكي بناءً على اللهجة والنص
+  // دالة توليد الصوت الذكي
   void generateAIVoice() {
     final text = textController.text.trim();
     if (text.isEmpty) {
@@ -65,7 +65,6 @@ class _TTSStudioScreenState extends State<TTSStudioScreen> {
       isGenerating = true;
     });
 
-    // محاكاة عملية معالجة الذكاء الاصطناعي وتوليد الصوت باللهجة المحددة
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         isGenerating = false;
@@ -84,85 +83,167 @@ class _TTSStudioScreenState extends State<TTSStudioScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Azab..x - استوديو الذكاء الاصطناعي'),
+        title: const Text('Azab..x - استوديو المونتاج والذكاء الاصطناعي'),
         centerTitle: true,
         backgroundColor: const Color(0xFF1F1F1F),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'اختر اللهجة العربية المطلوبة:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+      body: Column(
+        children: [
+          // شاشة معاينة الفيديو المصغرة (Preview Screen)
+          Expanded(
+            flex: 4,
+            child: Container(
+              margin: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blueAccent.withOpacity(0.5)),
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[800]!),
               ),
-              child: DropdownButton<String>(
-                value: selectedDialect,
-                isExpanded: true,
-                dropdownColor: const Color(0xFF1E1E1E),
-                underline: const SizedBox(),
-                items: arabicDialects.map((String dialect) {
-                  return DropdownMenuItem<String>(
-                    value: dialect,
-                    child: Text(dialect, style: const TextStyle(color: Colors.white)),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedDialect = newValue!;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'أدخل النص المراد تحويله لصوت:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: textController,
-              maxLines: 4,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'اكتب النص هنا، وسيتم قراءته باللهجة المختارة...',
-                hintStyle: TextStyle(color: Colors.grey[600]),
-                filled: true,
-                fillColor: const Color(0xFF1E1E1E),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
+              child: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.play_circle_fill_rounded, size: 64, color: Colors.blueAccent),
+                    SizedBox(height: 8),
+                    Text(
+                      'منطقة معاينة الفيديو (Preview)',
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 30),
-            Center(
-              child: isGenerating
-                  ? const CircularProgressIndicator(color: Colors.blueAccent)
-                  : ElevatedButton.icon(
-                      onPressed: generateAIVoice,
-                      icon: const Icon(Icons.mic_rounded),
-                      label: const Text('توليد الصوت الذكي (Generate AI Voice)'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+
+          // لوحة التحكم وتوليد الصوت باللهجات
+          Expanded(
+            flex: 5,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'اختر اللهجة العربية للتوليد الصوتي:',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blueAccent.withOpacity(0.5)),
+                    ),
+                    child: DropdownButton<String>(
+                      value: selectedDialect,
+                      isExpanded: true,
+                      dropdownColor: const Color(0xFF1E1E1E),
+                      underline: const SizedBox(),
+                      items: arabicDialects.map((String dialect) {
+                        return DropdownMenuItem<String>(
+                          value: dialect,
+                          child: Text(dialect, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedDialect = newValue!;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: textController,
+                    maxLines: 2,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'اكتب النص للتحويل الصوتي بالذكاء الاصطناعي...',
+                      hintStyle: TextStyle(color: Colors.grey[600]),
+                      filled: true,
+                      fillColor: const Color(0xFF1E1E1E),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: isGenerating
+                        ? const CircularProgressIndicator(color: Colors.blueAccent)
+                        : ElevatedButton.icon(
+                            onPressed: generateAIVoice,
+                            icon: const Icon(Icons.mic_rounded, size: 18),
+                            label: const Text('توليد الصوت الذكي'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueAccent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+
+          // شريط التايم لاين وأدوات المونتاج السفلي (Timeline & Tools)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              color: Color(0xFF181818),
+              border: Border(top: BorderSide(color: Color(0xFF2C2C2C))),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildToolButton(Icons.cut, 'قص (Split)'),
+                    _buildToolButton(Icons.audiotrack, 'إضافة صوت'),
+                    _buildToolButton(Icons.text_fields, 'نصوص (Text)'),
+                    _buildToolButton(Icons.filter_alt, 'فلاتر'),
+                    _buildToolButton(Icons.speed, 'السرعة'),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // شكل مسارات التايم لاين الوهمية
+                Container(
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF252525),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.grey[850]!),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.movie_creation_outlined, color: Colors.grey, size: 18),
+                      const SizedBox(width: 8),
+                      Text('التايم لاين الرئيسي (Timeline Tracks)', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  // أزرار أدوات المونتاج السريعة
+  Widget _buildToolButton(IconData icon, String label) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: Colors.blueAccent, size: 20),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+      ],
     );
   }
 }
