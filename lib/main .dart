@@ -95,6 +95,85 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
     });
   }
 
+  void openSubscriptionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1E1E1E),
+          title: const Row(
+            children: [
+              Icon(Icons.workspace_premium, color: Colors.amber, size: 24),
+              SizedBox(width: 8),
+              Text('باقات اشتراك Azab..x Pro', style: TextStyle(color: Colors.white, fontSize: 16)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'احصل على وصول غير محدود لأدوات الذكاء الاصطناعي وتوليد الصوت بكل اللهجات بسعر مناسب جداً!',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                const SizedBox(height: 12),
+                _buildPlanCard('الباقة المميزة (Pro Plan)', '5.00 \$ / شهرياً', Colors.blueAccent),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('إغلاق', style: TextStyle(color: Colors.grey)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPlanCard(String title, String price, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF282828),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color, width: 1.5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(price, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('تم اختيار الباقة بنجاح! جاري تحويلك لبوابة الدفع...'),
+                  backgroundColor: Colors.amber,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: const Size(60, 30),
+            ),
+            child: const Text('اشتراك', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,6 +181,13 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
         title: const Text('Azab..x - استوديو المونتاج والذكاء الاصطناعي'),
         centerTitle: true,
         backgroundColor: const Color(0xFF1F1F1F),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.workspace_premium, color: Colors.amber),
+            tooltip: 'الاشتراكات والنسخة المدفوعة',
+            onPressed: openSubscriptionDialog,
+          ),
+        ],
       ),
       body: Column(
         children: [
