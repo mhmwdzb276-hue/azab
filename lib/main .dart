@@ -16,60 +16,116 @@ class AzabApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF121212),
         primaryColor: Colors.blueAccent,
       ),
-      home: const HomeScreen(),
+      home: const TTSStudioScreen(),
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class TTSStudioScreen extends StatefulWidget {
+  const TTSStudioScreen({super.key});
+
+  @override
+  State<TTSStudioScreen> createState() => _TTSStudioScreenState();
+}
+
+class _TTSStudioScreenState extends State<TTSStudioScreen> {
+  // القائمة الشاملة للهجات العربية في الوطن العربي
+  final List<String> arabicDialects = [
+    '🇪🇬 اللهجة المصرية (Egypt)',
+    '🇸🇦 اللهجة السعودية والخليجية (Gulf)',
+    '🇲🇦 اللهجة المغربية وشمال إفريقيا (North Africa)',
+    '🇸🇾 اللهجة الشامية (Levantine)',
+    '🌍 اللغة العربية الفصحى (MSA)',
+  ];
+
+  late String selectedDialect;
+  final TextEditingController textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    selectedDialect = arabicDialects[0]; // الافتراضي مصرية
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Azab..x Studio'),
+        title: const Text('Azab..x - استوديو الذكاء الاصطناعي'),
         centerTitle: true,
         backgroundColor: const Color(0xFF1F1F1F),
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(
-              Icons.video_collection_rounded,
-              size: 80,
-              color: Colors.blueAccent,
+            const Text(
+              'اختر اللهجة العربية المطلوبة:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+            ),
+            const SizedBox(height: 10),
+            // قائمة منسدلة لاختيار اللهجات
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blueAccent.withOpacity(0.5)),
+              ),
+              child: DropdownButton<String>(
+                value: selectedDialect,
+                isExpanded: true,
+                dropdownColor: const Color(0xFF1E1E1E),
+                underline: const SizedBox(),
+                items: arabicDialects.map((String dialect) {
+                  return DropdownMenuItem<String>(
+                    value: dialect,
+                    child: Text(dialect, style: const TextStyle(color: Colors.white)),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedDialect = newValue!;
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 20),
             const Text(
-              'مرحباً بك في تطبيق Azab..x',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              'أدخل النص المراد تحويله لصوت:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent),
             ),
             const SizedBox(height: 10),
-            const Text(
-              'مستودع المونتاج والذكاء الاصطناعي باللهجات العربية',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
+            TextField(
+              controller: textController,
+              maxLines: 4,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'اكتب النص هنا، وسيتم قراءته باللهجة المختارة...',
+                hintStyle: TextStyle(color: Colors.grey[600]),
+                filled: true,
+                fillColor: const Color(0xFF1E1E1E),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
-            const SizedBox(height: 40),
-            ElevatedButton.icon(
-              onPressed: () {
-                // سنقوم ببرمجة زر مشروع جديد لاحقاً بالخطوة القادمة
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('مشروع جديد (New Project)'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                textStyle: const TextStyle(fontSize: 16),
+            const SizedBox(height: 30),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // زر توليد الصوت بالذكاء الاصطناعي
+                },
+                icon: const Icon(Icons.mic_rounded),
+                label: const Text('توليد الصوت الذكي (Generate AI Voice)'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
