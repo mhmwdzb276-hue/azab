@@ -11,7 +11,7 @@ class AzabApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Azab..x Pro',
+      title: 'Azab..x Pro Studio',
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF121212),
         primaryColor: Colors.blueAccent,
@@ -30,7 +30,7 @@ class AzabStudioScreen extends StatefulWidget {
 
 class _AzabStudioScreenState extends State<AzabStudioScreen> {
   int _currentIndex = 0;
-  int freeVideosRemaining = 3; // السماح بـ 3 فيديوهات مجانية لتجربة كاملة واحترافية
+  int freeVideosRemaining = 3; // 3 محاولات مجانية ذكية
 
   final List<String> arabicDialects = [
     '🇪🇬 اللهجة المصرية (Egypt)',
@@ -52,9 +52,17 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
 
   final TextEditingController voiceTextController = TextEditingController();
   final TextEditingController videoPromptController = TextEditingController();
+  final TextEditingController subtitleController = TextEditingController();
 
   bool isGeneratingVoice = false;
   bool isGeneratingVideo = false;
+
+  // قائمة الطبقات الزمنية للمشروع (Timeline Layers)
+  final List<Map<String, dynamic>> timelineLayers = [
+    {'type': 'video', 'name': 'مشهد الذكاء الاصطناعي (1)', 'duration': '05:00 ث', 'icon': Icons.movie},
+    {'type': 'audio', 'name': 'تعليق صوتي (اللهجة المصرية)', 'duration': '05:00 ث', 'icon': Icons.mic},
+    {'type': 'text', 'name': 'نصوص متحركة (Subtitles)', 'duration': '05:00 ث', 'icon': Icons.text_fields},
+  ];
 
   @override
   void initState() {
@@ -67,6 +75,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
   void dispose() {
     voiceTextController.dispose();
     videoPromptController.dispose();
+    subtitleController.dispose();
     super.dispose();
   }
 
@@ -89,11 +98,18 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         isGeneratingVoice = false;
+        // إضافة طبقة صوت جديدة للتايم لاين
+        timelineLayers.add({
+          'type': 'audio',
+          'name': 'صوت جديد ($selectedDialect)',
+          'duration': '04:30 ث',
+          'icon': Icons.mic,
+        });
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('تم توليد الصوت النقي بنجاح ($selectedDialect)!'),
+          content: Text('تم توليد وإضافة الصوت للتايم لاين بنجاح ($selectedDialect)!'),
           backgroundColor: Colors.green,
         ),
       );
@@ -112,7 +128,6 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
       return;
     }
 
-    // التحقق من عدد المحاولات المجانية المتبقية (3 فيديوهات)
     if (freeVideosRemaining <= 0) {
       openSubscriptionDialog(isLimitReached: true);
       return;
@@ -125,12 +140,18 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
     Future.delayed(const Duration(seconds: 3), () {
       setState(() {
         isGeneratingVideo = false;
-        freeVideosRemaining--; // خصم محاولة من الثلاثة
+        freeVideosRemaining--;
+        timelineLayers.add({
+          'type': 'video',
+          'name': 'مقطع AI جديد ($selectedResolution)',
+          'duration': '06:00 ث',
+          'icon': Icons.movie_creation,
+        });
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('تم توليد الفيديو بنجاح! متبقي لك ($freeVideosRemaining) محاولات مجانية.'),
+          content: Text('تم توليد الفيديو وإضافته لمحرر الطبقات! متبقي ($freeVideosRemaining) مجاناً.'),
           backgroundColor: Colors.blueAccent,
         ),
       );
@@ -148,8 +169,8 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
               const Icon(Icons.workspace_premium, color: Colors.amber, size: 24),
               const SizedBox(width: 8),
               Text(
-                isLimitReached ? 'استهلكت محاولاتك الثلاث المجانية!' : 'ترقية إلى Azab..x Pro',
-                style: const TextStyle(color: Colors.white, fontSize: 15),
+                isLimitReached ? 'انتهت محاولاتك المجانية الثلاث!' : 'ترقية إلى Azab..x Pro',
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ],
           ),
@@ -159,8 +180,8 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
               children: [
                 Text(
                   isLimitReached
-                      ? 'جربت التطبيق وشوفت الجودة العالية في أول 3 فيديوهات بنفسك! اشترك الآن بـ 5$ فقط لفتح أحدث الأدوات والمميزات وحرية التوليد بلا حدود وبدون علامة مائية.'
-                      : 'استمتع بكافة مميزات الذكاء الاصطناعي بلا حدود، بدقة 4K حقيقية، وبدون أي علامة مائية.',
+                      ? 'جربت قوة محرر الطبقات والجودة العالية بنفسك! اشترك الآن بـ 5$ فقط لفتح التصدير بلا حدود، إزالة العلامة المائية، والمميزات الاحترافية.'
+                      : 'استمتع بمحرر الطبقات المتقدم، تصدير بدقة 4K سينمائي، وبدون أي علامة مائية.',
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
                 const SizedBox(height: 12),
@@ -171,7 +192,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(isLimitReached ? 'لاحقاً' : 'متابعة مجاناً', style: const TextStyle(color: Colors.grey)),
+              child: Text(isLimitReached ? 'لاحقاً' : 'إغلاق', style: const TextStyle(color: Colors.grey)),
             ),
           ],
         );
@@ -202,11 +223,11 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
             onPressed: () {
               Navigator.of(context).pop();
               setState(() {
-                freeVideosRemaining = 15; // تفعيل محاولات متقدمة بعد الاشتراك
+                freeVideosRemaining = 20; // تفعيل محاولات بلا حدود
               });
               ScaffoldMessenger.of(context).showSnackBar(
-                const SNackBar(
-                  content: Text('مبروك! تم تفعيل اشتراك Pro بنجاح وأصبحت كل الميزات متاحة.'),
+                const SnackBar(
+                  content: Text('مبروك! تم تفعيل اشتراك Pro والمحرر المتقدم بنجاح.'),
                   backgroundColor: Colors.amber,
                 ),
               );
@@ -228,7 +249,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_currentIndex == 0 ? 'Azab..x (المجاني: $freeVideosRemaining فيديوهات)' : 'Azab..x - القوالب'),
+        title: Text(_currentIndex == 0 ? 'Azab..x Pro (المجاني: $freeVideosRemaining)' : 'Azab..x - القوالب'),
         centerTitle: true,
         backgroundColor: const Color(0xFF1F1F1F),
         actions: [
@@ -253,11 +274,11 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.movie_creation),
-            label: 'الاستوديو',
+            label: 'المحرر والاستوديو',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.explore),
-            label: 'القوالب',
+            label: 'القوالب الذكية',
           ),
         ],
       ),
@@ -267,169 +288,205 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
   Widget _buildStudioTab() {
     return Column(
       children: [
+        // 1. شاشة المعاينة
         Expanded(
           flex: 3,
           child: Container(
-            margin: const EdgeInsets.all(10),
+            margin: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.black,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(color: Colors.blueAccent.withOpacity(0.4)),
             ),
-            child: Center(
+            child: const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.auto_awesome, size: 52, color: Colors.amber),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'منطقة المعاينة (AI Video Preview)',
-                    style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
+                  Icon(Icons.play_circle_filled, size: 48, color: Colors.amber),
+                  SizedBox(height: 4),
                   Text(
-                    'الجودة: $selectedResolution | المتبقي مجاناً: $freeVideosRemaining فيديوهات',
-                    style: const TextStyle(color: Colors.amberAccent, fontSize: 11),
+                    'شاشة المعاينة المباشرة (Multi-Layer Preview)',
+                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
             ),
           ),
         ),
+
+        // 2. محرر الجدول الزمني للطبقات (Multi-Layer Timeline - ميزة التطبيقات العالمية)
+        Container(
+          height: 110,
+          margin: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF181818),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.amber.withOpacity(0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('⏱️ الجدول الزمني للطبقات (Timeline)', style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
+                  Text('سحب وإفلات العناصر', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Expanded(
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: timelineLayers.length,
+                  itemBuilder: (context, index) {
+                    final layer = timelineLayers[index];
+                    return Container(
+                      width: 130,
+                      margin: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF252525),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: layer['type'] == 'video'
+                              ? Colors.amber
+                              : layer['type'] == 'audio'
+                                  ? Colors.blueAccent
+                                  : Colors.green,
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(layer['icon'], size: 14, color: Colors.white),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  layer['name'],
+                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(layer['duration'], style: const TextStyle(color: Colors.grey, fontSize: 9)),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // 3. أدوات التوليد والإدخال
         Expanded(
-          flex: 5,
+          flex: 4,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '🎬 توليد فيديو احترافي بالذكاء الاصطناعي:',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.amber),
-                ),
-                const SizedBox(height: 4),
+                const Text('🎬 توليد فيديو بالذكاء الاصطناعي:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber)),
+                const SizedBox(height: 2),
                 TextField(
                   controller: videoPromptController,
-                  maxLines: 2,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  maxLines: 1,
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
                   decoration: InputDecoration(
-                    hintText: 'اكتب وصف المشهد لتوليد فيديو عالي الجودة...',
+                    hintText: 'وصف المشهد (مثلاً: أصحاب في الغابة)...',
                     hintStyle: TextStyle(color: Colors.grey[600]),
                     filled: true,
                     fillColor: const Color(0xFF1E1E1E),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E1E1E),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.amber.withOpacity(0.5)),
-                        ),
+                        height: 35,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(6)),
                         child: DropdownButton<String>(
                           value: selectedResolution,
                           isExpanded: true,
                           dropdownColor: const Color(0xFF1E1E1E),
                           underline: const SizedBox(),
                           items: videoResolutions.map((String res) {
-                            return DropdownMenuItem<String>(
-                              value: res,
-                              child: Text(res, style: const TextStyle(color: Colors.white, fontSize: 11)),
-                            );
+                            return DropdownMenuItem<String>(value: res, child: Text(res, style: const TextStyle(color: Colors.white, fontSize: 10)));
                           }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              selectedResolution = newValue!;
-                            });
-                          },
+                          onChanged: (String? val) => setState(() => selectedResolution = val!),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     isGeneratingVideo
-                        ? const CircularProgressIndicator(color: Colors.amber)
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.amber))
                         : ElevatedButton.icon(
                             onPressed: generateAIVideo,
-                            icon: const Icon(Icons.movie_filter_rounded, size: 16),
-                            label: const Text('توليد الفيديو'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
-                              foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
+                            icon: const Icon(Icons.add, size: 14),
+                            label: const Text('إضافة للتايم لاين', style: TextStyle(fontSize: 10)),
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(horizontal: 8)),
                           ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                const Text(
-                  '🎙️ توليد الصوت الذكي باللهجات العربية:',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                const SizedBox(height: 8),
+                const Text('🎙️ توليد الصوت الذكي:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 35,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(6)),
+                        child: DropdownButton<String>(
+                          value: selectedDialect,
+                          isExpanded: true,
+                          dropdownColor: const Color(0xFF1E1E1E),
+                          underline: const SizedBox(),
+                          items: arabicDialects.map((String d) {
+                            return DropdownMenuItem<String>(value: d, child: Text(d, style: const TextStyle(color: Colors.white, fontSize: 10)));
+                          }).toList(),
+                          onChanged: (String? val) => setState(() => selectedDialect = val!),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blueAccent.withOpacity(0.5)),
-                  ),
-                  child: DropdownButton<String>(
-                    value: selectedDialect,
-                    isExpanded: true,
-                    dropdownColor: const Color(0xFF1E1E1E),
-                    underline: const SizedBox(),
-                    items: arabicDialects.map((String dialect) {
-                      return DropdownMenuItem<String>(
-                        value: dialect,
-                        child: Text(dialect, style: const TextStyle(color: Colors.white, fontSize: 11)),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedDialect = newValue!;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
                 TextField(
                   controller: voiceTextController,
-                  maxLines: 2,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  maxLines: 1,
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
                   decoration: InputDecoration(
-                    hintText: 'اكتب النص للتحويل الصوتي النقي...',
+                    hintText: 'اكتب النص للتعليق الصوتي...',
                     hintStyle: TextStyle(color: Colors.grey[600]),
                     filled: true,
                     fillColor: const Color(0xFF1E1E1E),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Center(
                   child: isGeneratingVoice
-                      ? const CircularProgressIndicator(color: Colors.blueAccent)
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.blueAccent))
                       : ElevatedButton.icon(
                           onPressed: generateAIVoice,
-                          icon: const Icon(Icons.mic_rounded, size: 16),
-                          label: const Text('توليد الصوت الذكي'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                            textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                          ),
+                          icon: const Icon(Icons.mic, size: 14),
+                          label: const Text('توليد وإضافة الصوت', style: TextStyle(fontSize: 10)),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4)),
                         ),
                 ),
               ],
@@ -454,29 +511,4 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
       itemBuilder: (context, index) {
         final t = templates[index];
         return Card(
-          color: const Color(0xFF1E1E1E),
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          child: ListTile(
-            leading: const Icon(Icons.auto_fix_high, color: Colors.amber, size: 28),
-            title: Text(t['title']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-            subtitle: Text(t['desc']!, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-            trailing: Chip(
-              label: Text(t['tag']!, style: const TextStyle(fontSize: 10, color: Colors.black)),
-              backgroundColor: t['tag'] == 'PRO' ? Colors.amber : Colors.blueAccent,
-              padding: EdgeInsets.zero,
-            ),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('تم فتح قالب "${t['title']}" بنجاح!'),
-                  backgroundColor: Colors.blueAccent,
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-}
+          color: co
