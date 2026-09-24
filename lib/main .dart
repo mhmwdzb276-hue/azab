@@ -29,7 +29,7 @@ class TTSStudioScreen extends StatefulWidget {
 }
 
 class _TTSStudioScreenState extends State<TTSStudioScreen> {
-  // القائمة الشاملة للهجات العربية في الوطن العربي
+  // القائمة الشاملة للهجات العربية
   final List<String> arabicDialects = [
     '🇪🇬 اللهجة المصرية (Egypt)',
     '🇸🇦 اللهجة السعودية والخليجية (Gulf)',
@@ -40,11 +40,44 @@ class _TTSStudioScreenState extends State<TTSStudioScreen> {
 
   late String selectedDialect;
   final TextEditingController textController = TextEditingController();
+  bool isGenerating = false;
 
   @override
   void initState() {
     super.initState();
-    selectedDialect = arabicDialects[0]; // الافتراضي مصرية
+    selectedDialect = arabicDialects[0];
+  }
+
+  // دالة توليد الصوت الذكي بناءً على اللهجة والنص
+  void generateAIVoice() {
+    final text = textController.text.trim();
+    if (text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('من فضلك اكتب نصاً أولاً لتوليد الصوت!'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isGenerating = true;
+    });
+
+    // محاكاة عملية معالجة الذكاء الاصطناعي وتوليد الصوت باللهجة المحددة
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        isGenerating = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم توليد الصوت بنجاح باستخدام ($selectedDialect)!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    });
   }
 
   @override
@@ -65,7 +98,6 @@ class _TTSStudioScreenState extends State<TTSStudioScreen> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent),
             ),
             const SizedBox(height: 10),
-            // قائمة منسدلة لاختيار اللهجات
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
@@ -114,19 +146,19 @@ class _TTSStudioScreenState extends State<TTSStudioScreen> {
             ),
             const SizedBox(height: 30),
             Center(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // زر توليد الصوت بالذكاء الاصطناعي
-                },
-                icon: const Icon(Icons.mic_rounded),
-                label: const Text('توليد الصوت الذكي (Generate AI Voice)'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
+              child: isGenerating
+                  ? const CircularProgressIndicator(color: Colors.blueAccent)
+                  : ElevatedButton.icon(
+                      onPressed: generateAIVoice,
+                      icon: const Icon(Icons.mic_rounded),
+                      label: const Text('توليد الصوت الذكي (Generate AI Voice)'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
             ),
           ],
         ),
