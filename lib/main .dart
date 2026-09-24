@@ -30,7 +30,12 @@ class AzabStudioScreen extends StatefulWidget {
 
 class _AzabStudioScreenState extends State<AzabStudioScreen> {
   int _currentIndex = 0;
-  int freeVideosRemaining = 3; // 3 محاولات مجانية ذكية
+  int freeVideosRemaining = 3; // 3 محاولات مجانية
+
+  // حالات نظام الاشتراك الحقيقي
+  bool isProActive = false;
+  String subscriptionStatus = 'الباقة المجانية (Free Tier)';
+  DateTime? subscriptionExpiryDate;
 
   final List<String> arabicDialects = [
     '🇪🇬 اللهجة المصرية (Egypt)',
@@ -48,16 +53,13 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
 
   late String selectedDialect;
   late String selectedResolution;
-  double videoSpeed = 1.0;
 
   final TextEditingController voiceTextController = TextEditingController();
   final TextEditingController videoPromptController = TextEditingController();
-  final TextEditingController subtitleController = TextEditingController();
 
   bool isGeneratingVoice = false;
   bool isGeneratingVideo = false;
 
-  // قائمة الطبقات الزمنية للمشروع (Timeline Layers)
   final List<Map<String, dynamic>> timelineLayers = [
     {'type': 'video', 'name': 'مشهد الذكاء الاصطناعي (1)', 'duration': '05:00 ث', 'icon': Icons.movie},
     {'type': 'audio', 'name': 'تعليق صوتي (اللهجة المصرية)', 'duration': '05:00 ث', 'icon': Icons.mic},
@@ -75,7 +77,6 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
   void dispose() {
     voiceTextController.dispose();
     videoPromptController.dispose();
-    subtitleController.dispose();
     super.dispose();
   }
 
@@ -98,7 +99,6 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         isGeneratingVoice = false;
-        // إضافة طبقة صوت جديدة للتايم لاين
         timelineLayers.add({
           'type': 'audio',
           'name': 'صوت جديد ($selectedDialect)',
@@ -128,7 +128,8 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
       return;
     }
 
-    if (freeVideosRemaining <= 0) {
+    // إذا لم يكن مشتركاً وانتهت محاولاته المجانية (أو انتهى اشتراكه)
+    if (!isProActive && freeVideosRemaining <= 0) {
       openSubscriptionDialog(isLimitReached: true);
       return;
     }
@@ -140,7 +141,9 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
     Future.delayed(const Duration(seconds: 3), () {
       setState(() {
         isGeneratingVideo = false;
-        freeVideosRemaining--;
+        if (!isProActive) {
+          freeVideosRemaining--; // خصم من المجاني فقط
+        }
         timelineLayers.add({
           'type': 'video',
           'name': 'مقطع AI جديد ($selectedResolution)',
@@ -151,7 +154,9 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('تم توليد الفيديو وإضافته لمحرر الطبقات! متبقي ($freeVideosRemaining) مجاناً.'),
+          content: Text(isProActive
+              ? 'تم توليد الفيديو بنجاح (حساب Pro نشط بلا حدود).'
+              : 'تم توليد الفيديو! متبقي لك ($freeVideosRemaining) محاولات مجانية.'),
           backgroundColor: Colors.blueAccent,
         ),
       );
@@ -169,20 +174,21 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
               const Icon(Icons.workspace_premium, color: Colors.amber, size: 24),
               const SizedBox(width: 8),
               Text(
-                isLimitReached ? 'انتهت محاولاتك المجانية الثلاث!' : 'ترقية إلى Azab..x Pro',
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                isLimitReached ? 'انتهت محاولاتك المجانية الثلاث!' : 'إدارة الاشتراكات (Azab..x Pro)',
+                style: const TextStyle(color: Colors.white, fontSize: 13),
               ),
             ],
           ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   isLimitReached
-                      ? 'جربت قوة محرر الطبقات والجودة العالية بنفسك! اشترك الآن بـ 5$ فقط لفتح التصدير بلا حدود، إزالة العلامة المائية، والمميزات الاحترافية.'
-                      : 'استمتع بمحرر الطبقات المتقدم، تصدير بدقة 4K سينمائي، وبدون أي علامة مائية.',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                      ? 'لقد استهلكت محاولاتك المجانية! اشترك الآن بـ 5$ شهرياً لتفعيل اشتراك Pro وتجنب إغلاق ميزات التحرير والتصدير.'
+                      : 'حالة الحساب الحالية: $subscriptionStatus\n' + (subscriptionExpiryDate != null ? 'تاريخ انتهاء الاشتراك: ${subscriptionExpiryDate.toString().substring(0, 10)}' : ''),
+                  style: const TextStyle(color: Colors.grey, fontSize: 11),
                 ),
                 const SizedBox(height: 12),
                 _buildPlanCard('الباقة الاحترافية (Pro Plan)', '5.00 \$ / شهرياً', Colors.blueAccent),
@@ -192,7 +198,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(isLimitReached ? 'لاحقاً' : 'إغلاق', style: const TextStyle(color: Colors.grey)),
+              child: const Text('إغلاق', style: TextStyle(color: Colors.grey)),
             ),
           ],
         );
@@ -202,7 +208,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
 
   Widget _buildPlanCard(String title, String price, Color color) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: const Color(0xFF282828),
         borderRadius: BorderRadius.circular(8),
@@ -214,20 +220,23 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
               const SizedBox(height: 2),
-              Text(price, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text(price, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
             ],
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
               setState(() {
-                freeVideosRemaining = 20; // تفعيل محاولات بلا حدود
+                isProActive = true;
+                subscriptionStatus = 'باقة Pro نشطة (مدفوعة)';
+                // نفترض أن الاشتراك لمدة 30 يوماً من تاريخ اليوم
+                subscriptionExpiryDate = DateTime.now().add(const Duration(days: 30));
               });
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('مبروك! تم تفعيل اشتراك Pro والمحرر المتقدم بنجاح.'),
+                  content: Text('مبروك! تم تفعيل اشتراك Pro بنجاح لمدة 30 يوماً.'),
                   backgroundColor: Colors.amber,
                 ),
               );
@@ -235,10 +244,10 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              minimumSize: const Size(60, 30),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              minimumSize: const Size(50, 28),
             ),
-            child: const Text('اشتراك', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+            child: Text(isProActive ? 'تجديد الاشتراك' : 'اشتراك الآن', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -249,14 +258,16 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_currentIndex == 0 ? 'Azab..x Pro (المجاني: $freeVideosRemaining)' : 'Azab..x - القوالب'),
+        title: Text(_currentIndex == 0
+            ? (isProActive ? 'Azab..x Pro (نشط 🌟)' : 'Azab..x (المجاني: $freeVideosRemaining)')
+            : 'Azab..x - القوالب'),
         centerTitle: true,
         backgroundColor: const Color(0xFF1F1F1F),
         actions: [
           TextButton.icon(
             onPressed: () => openSubscriptionDialog(isLimitReached: false),
-            icon: const Icon(Icons.workspace_premium, color: Colors.amber, size: 18),
-            label: const Text('PRO', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 12)),
+            icon: Icon(Icons.workspace_premium, color: isProActive ? Colors.amber : Colors.grey, size: 18),
+            label: Text(isProActive ? 'PRO نشط' : 'اشتراك', style: TextStyle(color: isProActive ? Colors.amber : Colors.grey, fontWeight: FontWeight.bold, fontSize: 11)),
           ),
         ],
       ),
@@ -266,20 +277,10 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
         backgroundColor: const Color(0xFF181818),
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        onTap: (index) => setState(() => _currentIndex = index),
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.movie_creation),
-            label: 'المحرر والاستوديو',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: 'القوالب الذكية',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.movie_creation), label: 'المحرر والاستوديو'),
+          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'القوالب الذكية'),
         ],
       ),
     );
@@ -288,7 +289,6 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
   Widget _buildStudioTab() {
     return Column(
       children: [
-        // 1. شاشة المعاينة
         Expanded(
           flex: 3,
           child: Container(
@@ -313,10 +313,8 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
             ),
           ),
         ),
-
-        // 2. محرر الجدول الزمني للطبقات (Multi-Layer Timeline - ميزة التطبيقات العالمية)
         Container(
-          height: 110,
+          height: 100,
           margin: const EdgeInsets.symmetric(horizontal: 8),
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
@@ -331,7 +329,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('⏱️ الجدول الزمني للطبقات (Timeline)', style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
-                  Text('سحب وإفلات العناصر', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                  Text('حسب حالة الاشتراك', style: TextStyle(color: Colors.grey, fontSize: 10)),
                 ],
               ),
               const SizedBox(height: 4),
@@ -342,18 +340,14 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                   itemBuilder: (context, index) {
                     final layer = timelineLayers[index];
                     return Container(
-                      width: 130,
+                      width: 120,
                       margin: const EdgeInsets.only(right: 6),
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: const Color(0xFF252525),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: layer['type'] == 'video'
-                              ? Colors.amber
-                              : layer['type'] == 'audio'
-                                  ? Colors.blueAccent
-                                  : Colors.green,
+                          color: layer['type'] == 'video' ? Colors.amber : Colors.blueAccent,
                           width: 1,
                         ),
                       ),
@@ -366,11 +360,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                               Icon(layer['icon'], size: 14, color: Colors.white),
                               const SizedBox(width: 4),
                               Expanded(
-                                child: Text(
-                                  layer['name'],
-                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                                child: Text(layer['name'], style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
                               ),
                             ],
                           ),
@@ -385,8 +375,6 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
             ],
           ),
         ),
-
-        // 3. أدوات التوليد والإدخال
         Expanded(
           flex: 4,
           child: SingleChildScrollView(
@@ -401,7 +389,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                   maxLines: 1,
                   style: const TextStyle(color: Colors.white, fontSize: 11),
                   decoration: InputDecoration(
-                    hintText: 'وصف المشهد (مثلاً: أصحاب في الغابة)...',
+                    hintText: 'وصف المشهد...',
                     hintStyle: TextStyle(color: Colors.grey[600]),
                     filled: true,
                     fillColor: const Color(0xFF1E1E1E),
@@ -443,26 +431,20 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                 const SizedBox(height: 8),
                 const Text('🎙️ توليد الصوت الذكي:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
                 const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 35,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(6)),
-                        child: DropdownButton<String>(
-                          value: selectedDialect,
-                          isExpanded: true,
-                          dropdownColor: const Color(0xFF1E1E1E),
-                          underline: const SizedBox(),
-                          items: arabicDialects.map((String d) {
-                            return DropdownMenuItem<String>(value: d, child: Text(d, style: const TextStyle(color: Colors.white, fontSize: 10)));
-                          }).toList(),
-                          onChanged: (String? val) => setState(() => selectedDialect = val!),
-                        ),
-                      ),
-                    ),
-                  ],
+                Container(
+                  height: 35,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(6)),
+                  child: DropdownButton<String>(
+                    value: selectedDialect,
+                    isExpanded: true,
+                    dropdownColor: const Color(0xFF1E1E1E),
+                    underline: const SizedBox(),
+                    items: arabicDialects.map((String d) {
+                      return DropdownMenuItem<String>(value: d, child: Text(d, style: const TextStyle(color: Colors.white, fontSize: 10)));
+                    }).toList(),
+                    onChanged: (String? val) => setState(() => selectedDialect = val!),
+                  ),
                 ),
                 const SizedBox(height: 4),
                 TextField(
@@ -470,7 +452,7 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
                   maxLines: 1,
                   style: const TextStyle(color: Colors.white, fontSize: 11),
                   decoration: InputDecoration(
-                    hintText: 'اكتب النص للتعليق الصوتي...',
+                    hintText: 'النص للتعليق الصوتي...',
                     hintStyle: TextStyle(color: Colors.grey[600]),
                     filled: true,
                     fillColor: const Color(0xFF1E1E1E),
@@ -511,4 +493,8 @@ class _AzabStudioScreenState extends State<AzabStudioScreen> {
       itemBuilder: (context, index) {
         final t = templates[index];
         return Card(
-          color: co
+          color: const Color(0xFF1E1E1E),
+          margin: const EdgeInsets.only(bottom: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: ListTile(
+            leading: const Icon(Icons.auto_fix_high, colo
